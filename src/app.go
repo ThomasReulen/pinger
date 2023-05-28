@@ -115,6 +115,10 @@ func main() {
 		log.Print(err)
 	}
 	datafolder = datafolder + "/" + ip
+	err = os.Mkdir(datafolder, 0755)
+	if err != nil {
+		log.Print(err)
+	}
 
 	chunksize := os.Getenv("CHUNKSIZE")
 	if len(chunksize) == 0 {
