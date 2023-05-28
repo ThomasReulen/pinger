@@ -100,11 +100,6 @@ func parseExitCode(err error) (int, error) {
 
 func main() {
 
-	err := os.Mkdir("data", 0755)
-	if err != nil {
-		log.Println(err)
-	}
-
 	ip := os.Getenv("IP")
 	fmt.Printf("%s\n", ip)
 
@@ -133,6 +128,13 @@ func main() {
 	its, _ := strconv.Atoi(iterations)
 
 	for {
+
+		iterationstamp := fmt.Sprint(time.Now().Unix())
+		iterationfolder := datafolder + "/" + iterationstamp
+		err = os.Mkdir(iterationfolder, 0755)
+		if err != nil {
+			log.Print(err)
+		}
 
 		for i := 0; i < its; i++ {
 
@@ -177,7 +179,7 @@ func main() {
 			}
 			runstamp := fmt.Sprint(time.Now().Unix())
 			jsonPackage, _ := json.Marshal(pingRes)
-			os.WriteFile(datafolder+"/"+runstamp+".json", jsonPackage, 0666)
+			os.WriteFile(iterationfolder+"/"+runstamp+".json", jsonPackage, 0666)
 		}
 
 	}
