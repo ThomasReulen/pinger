@@ -32,13 +32,13 @@ func (ce ConversionError) Error() string {
 var (
 	headerRx         = regexp.MustCompile(`^PING (?P<host>\d+\.\d+\.\d+\.\d+) \((?P<resolvedIPAddress>\d+\.\d+\.\d+\.\d+)\) (?P<payloadSize>\d+)\((?P<payloadActualSize>\d+)\) bytes of data`)
 	headerRxAlt      = regexp.MustCompile(`^PING (?P<host>\d+\.\d+\.\d+\.\d+) \((?P<resolvedIPAddress>\d+\.\d+\.\d+\.\d+)\): (?P<payloadSize>\d+) data bytes`)
-	lineRx           = regexp.MustCompile(`^(?P<replySize>\d+) bytes from (?P<fromAddress>\d+\.\d+\.\d+\.\d+): icmp_seq=(?P<seqNo>\d+) ttl=(?P<ttl>\d+) time=(?P<time>.*)$`)
+	lineRx           = regexp.MustCompile(`^(?P<replySize>\d+) bytes from (?P<fromAddress>\d+\.\d+\.\d+\.\d+): (icmp_seq|seq)=(?P<seqNo>\d+) ttl=(?P<ttl>\d+) time=(?P<time>.*)$`)
 	statsSeparatorRx = regexp.MustCompile(`^--- (?P<IPAddress>\d+\.\d+\.\d+\.\d+) ping statistics ---$`)
 	statsLine1       = regexp.MustCompile(`^(?P<packetsTransmitted>\d+) packets transmitted, (?P<packetsReceived>\d+) (packets )?received,( \+(?P<errors>\d+) errors,)?( \+(?P<duplicates>\d+) duplicates,)?( (?P<packetLoss>\-?\d+)% packet loss)?(, time (?P<time>.*))?( \-\- (?P<warning>.*))?$`)
-	statsLine2       = regexp.MustCompile(`^(rtt|round-trip) min/avg/max/(mdev|stddev) = (?P<min>[^/]+)/(?P<avg>[^/]+)/(?P<max>[^/]+)/(?P<mdev>[^ ]+) (?P<unit>.*)$`)
+	statsLine2       = regexp.MustCompile(`^(rtt|round-trip) min/avg/max = (?P<min>[^/]+)/(?P<avg>[^/]+)/(?P<max>[^/]+) (?P<unit>.*)$`)
 	pipeNo           = regexp.MustCompile(`(?P<unit>[^,]+), pipe (?P<pipeNo>\d+)$`)
 	pipeNoLine       = regexp.MustCompile(`^pipe (?P<pipeNo>\d+)$`)
-	hostErrorLineRx1 = regexp.MustCompile(`^From (?P<fromAddress>\d+\.\d+\.\d+\.\d+) icmp_seq=(?P<seqNo>\d+) (?P<error>.*)$`)
+	hostErrorLineRx1 = regexp.MustCompile(`^From (?P<fromAddress>\d+\.\d+\.\d+\.\d+) (icmp_seq|seq)=(?P<seqNo>\d+) (?P<error>.*)$`)
 	hostErrorLineRx2 = regexp.MustCompile(`^(?P<replySize>\d+) bytes from (?P<fromAddress>\d+\.\d+\.\d+\.\d+): (?P<error>.*)$`)
 )
 
@@ -303,10 +303,11 @@ func Parse(s string) (*PingOutput, error) {
 	if err != nil {
 		return nil, ConversionError{"max", err}
 	}
-	po.Stats.RoundTripDeviation, err = time.ParseDuration(result["mdev"] + unit)
-	if err != nil {
-		return nil, ConversionError{"mdev", err}
-	}
+	// po.Stats.RoundTripDeviation, err = time.ParseDuration(result["mdev"] + unit)
+	// if err != nil {
+	// 	return nil, ConversionError{"mdev", err}
+	// }
+	po.Stats.RoundTripDeviation, _ = time.ParseDuration("0" + unit)
 
 	return &po, nil
 }

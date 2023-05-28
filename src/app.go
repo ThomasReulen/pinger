@@ -59,7 +59,7 @@ func Ping(ipV4Address string, count int) (*parser.PingOutput, error) {
 		exitCode            int
 	)
 	pingArgs := []string{"-c", fmt.Sprintf("%d", count), ipV4Address}
-	cmd := exec.Command("ping", pingArgs...)
+	cmd := exec.Command("/bin/ping", pingArgs...)
 	cmd.Stdout = &output
 	cmd.Stderr = &errorOutput
 
@@ -132,49 +132,53 @@ func main() {
 	}
 	its, _ := strconv.Atoi(iterations)
 
-	for i := 0; i < its; i++ {
+	for {
 
-		p, err := Ping(ip, cs)
-		if err != nil {
-			fmt.Printf("%v", err)
-		}
+		for i := 0; i < its; i++ {
 
-		pingRes := JsonPingResult{
-			Host:              p.Host,
-			ResolvedIPAddress: p.ResolvedIPAddress,
-			PayloadSize:       UintToStr(p.PayloadSize),
-			PayloadActualSize: UintToStr(p.PayloadActualSize),
-		}
-
-		ps := JsonPingStatistics{
-			IPAddress:          p.Stats.IPAddress,
-			PacketsTransmitted: fmt.Sprint(p.Stats.PacketsTransmitted),
-			PacketsReceived:    fmt.Sprint(p.Stats.PacketsReceived),
-			Errors:             fmt.Sprint(p.Stats.Errors),
-			PacketLossPercent:  fmt.Sprint(p.Stats.PacketLossPercent),
-			Time:               p.Stats.Time.String(),
-			RoundTripMin:       p.Stats.RoundTripMin.String(),
-			RoundTripAverage:   p.Stats.RoundTripAverage.String(),
-			RoundTripMax:       p.Stats.RoundTripMax.String(),
-			RoundTripDeviation: p.Stats.RoundTripDeviation.String(),
-			Warning:            p.Stats.Warning,
-		}
-		pingRes.Stats = ps
-
-		for _, pr := range p.Replies {
-			singleReply := JsonReplies{
-				Size:           fmt.Sprint(pr.Size),
-				FromAddress:    pr.FromAddress,
-				SequenceNumber: fmt.Sprint(pr.SequenceNumber),
-				TTL:            fmt.Sprint(pr.TTL),
-				Time:           pr.Time.String(),
-				Error:          pr.Error,
-				Duplicate:      pr.Duplicate,
+			p, err := Ping(ip, cs)
+			if err != nil {
+				fmt.Printf("%v", err)
 			}
-			pingRes.Replies = append(pingRes.Replies, singleReply)
+
+			pingRes := JsonPingResult{
+				Host:              p.Host,
+				ResolvedIPAddress: p.ResolvedIPAddress,
+				PayloadSize:       UintToStr(p.PayloadSize),
+				PayloadActualSize: UintToStr(p.PayloadActualSize),
+			}
+
+			ps := JsonPingStatistics{
+				IPAddress:          p.Stats.IPAddress,
+				PacketsTransmitted: fmt.Sprint(p.Stats.PacketsTransmitted),
+				PacketsReceived:    fmt.Sprint(p.Stats.PacketsReceived),
+				Errors:             fmt.Sprint(p.Stats.Errors),
+				PacketLossPercent:  fmt.Sprint(p.Stats.PacketLossPercent),
+				Time:               p.Stats.Time.String(),
+				RoundTripMin:       p.Stats.RoundTripMin.String(),
+				RoundTripAverage:   p.Stats.RoundTripAverage.String(),
+				RoundTripMax:       p.Stats.RoundTripMax.String(),
+				RoundTripDeviation: p.Stats.RoundTripDeviation.String(),
+				Warning:            p.Stats.Warning,
+			}
+			pingRes.Stats = ps
+
+			for _, pr := range p.Replies {
+				singleReply := JsonReplies{
+					Size:           fmt.Sprint(pr.Size),
+					FromAddress:    pr.FromAddress,
+					SequenceNumber: fmt.Sprint(pr.SequenceNumber),
+					TTL:            fmt.Sprint(pr.TTL),
+					Time:           pr.Time.String(),
+					Error:          pr.Error,
+					Duplicate:      pr.Duplicate,
+				}
+				pingRes.Replies = append(pingRes.Replies, singleReply)
+			}
+			runstamp := fmt.Sprint(time.Now().Unix())
+			jsonPackage, _ := json.Marshal(pingRes)
+			os.WriteFile(datafolder+"/"+runstamp+".json", jsonPackage, 0666)
 		}
-		runstamp := fmt.Sprint(time.Now().Unix())
-		jsonPackage, _ := json.Marshal(pingRes)
-		os.WriteFile(datafolder+"/"+runstamp+".json", jsonPackage, 0666)
+
 	}
 }
