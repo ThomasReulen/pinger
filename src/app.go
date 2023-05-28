@@ -110,7 +110,7 @@ func main() {
 	if len(datafolder) == 0 {
 		datafolder = "data"
 	}
-	err = os.Mkdir(datafolder, 0755)
+	err := os.Mkdir(datafolder, 0755)
 	if err != nil {
 		log.Print(err)
 	}
