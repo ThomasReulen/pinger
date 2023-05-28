@@ -108,12 +108,13 @@ func main() {
 
 	datafolder := os.Getenv("DATA_FOLDER")
 	if len(datafolder) == 0 {
-		datafolder = "data"
+		datafolder = "/pinger-data"
 	}
 	err := os.Mkdir(datafolder, 0755)
 	if err != nil {
 		log.Print(err)
 	}
+	datafolder = datafolder + "/" + ip
 
 	chunksize := os.Getenv("CHUNKSIZE")
 	if len(chunksize) == 0 {
