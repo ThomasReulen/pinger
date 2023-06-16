@@ -101,6 +101,9 @@ func parseExitCode(err error) (int, error) {
 func main() {
 
 	ip := os.Getenv("IP")
+	if len(ip) == 0 {
+		ip = "8.8.8.8"
+	}
 	fmt.Printf("%s\n", ip)
 
 	inst := fmt.Sprint(time.Now().Unix())
@@ -122,15 +125,21 @@ func main() {
 
 	chunksize := os.Getenv("CHUNKSIZE")
 	if len(chunksize) == 0 {
-		chunksize = "3"
+		chunksize = "10"
 	}
 	cs, _ := strconv.Atoi(chunksize)
 
 	iterations := os.Getenv("ITERATIONS")
 	if len(iterations) == 0 {
-		iterations = "1"
+		iterations = "250"
 	}
 	its, _ := strconv.Atoi(iterations)
+
+	saveSuccessfulChunks := false
+	testSaveSuccessfulChunks := os.Getenv("SAVE_SUCCESSFUL_CHUNKS")
+	if len(testSaveSuccessfulChunks) == 0 {
+		saveSuccessfulChunks = true
+	}
 
 	for {
 
@@ -182,9 +191,11 @@ func main() {
 				}
 				pingRes.Replies = append(pingRes.Replies, singleReply)
 			}
-			runstamp := fmt.Sprint(time.Now().Unix())
-			jsonPackage, _ := json.Marshal(pingRes)
-			os.WriteFile(iterationfolder+"/"+runstamp+".json", jsonPackage, 0666)
+			if saveSuccessfulChunks || pingRes.Stats.PacketsReceived < pingRes.Stats.PacketsTransmitted {
+				runstamp := fmt.Sprint(time.Now().Unix())
+				jsonPackage, _ := json.Marshal(pingRes)
+				os.WriteFile(iterationfolder+"/"+runstamp+".json", jsonPackage, 0666)
+			}
 		}
 
 	}
